@@ -103,8 +103,11 @@
       const moistures = data.map(d => d.moisture);
 
       const ctx = document.getElementById("sensorChart").getContext("2d");
-      if (window.sensorChart) window.sensorChart.destroy();
-      window.sensorChart = new Chart(ctx, {
+if (window.sensorChart && typeof window.sensorChart.destroy === "function") {
+  window.sensorChart.destroy();
+}
+window.sensorChart = new Chart(ctx, {
+
         type: "line",
         data: {
           labels,
