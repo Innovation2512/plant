@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Plant Dashboard 🌿</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-green-50 font-sans p-4">
+  <h1 class="text-3xl font-bold text-green-800 mb-2">🌿 Smart Plant Dashboard</h1>
+
+  <!-- 🔄 Refresh Now Button -->
+  <button onclick="updateDashboard()" class="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">
+    🔄 Refresh Now
+  </button>
+
+  <!-- Sensor Cards -->
+  <div id="cards" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-xl shadow-md">
+      <h2 class="text-lg font-semibold text-gray-700">🌡️ Temperature</h2>
+      <p id="temp" class="text-2xl text-green-700 mt-2">-- °C</p>
+    </div>
+    <div class="bg-white p-4 rounded-xl shadow-md">
+      <h2 class="text-lg font-semibold text-gray-700">💧 Moisture</h2>
+      <p id="moisture" class="text-2xl text-green-700 mt-2">--%</p>
+    </div>
+  </div>
+
+  <!-- Line Chart -->
+  <canvas id="sensorChart" class="bg-white p-4 rounded-xl shadow-md"></canvas>
+
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/1VEiTbPAoAgvGdOrQvcFogat5WfSzbx1vnKC7m0xshpc/export?format=csv&id=1VEiTbPAoAgvGdOrQvcFogat5WfSzbx1vnKC7m0xshpc&gid=0";
+
+    async function fetchCSV(url) {
+      try {
+        const response = await fetch(url);
+        const data = await response.text();
+        return data
+          .trim()
+          .split("\n")
+          .slice(1) // skip headers
+          .map(row => {
+            const [timestamp, temp, moisture] = row.split(",");
+            return {
+              timestamp: timestamp.trim(),
+              temp: parseFloat(temp),
+              moisture: parseFloat(moisture)
+            };
+          })
+          .filter(d => !isNaN(d.temp) && !isNaN(d.moisture));
+      } catch (error) {
+        console.error("Failed to fetch CSV:", error);
+        return [];
+      }
+    }
+
+    async function updateDashboard() {
+      const data = await fetchCSV(csvUrl);
+      if (data.length === 0) {
+        console.warn("No valid data found.");
+        return;
+      }
+
+      const latest = data[data.length - 1];
+      document.getElementById("temp").textContent = `${latest.temp.toFixed(1)} °C`;
+      document.getElementById("moisture").textContent = `${latest.moisture.toFixed(1)} %`;
+
+      const labels = data.map(d => d.timestamp);
+      const temps = data.map(d => d.temp);
+      const moistures = data.map(d => d.moisture);
+
+      const ctx = document.getElementById("sensorChart").getContext("2d");
+      if (window.sensorChart) window.sensorChart.destroy();
+      window.sensorChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Temperature (°C)",
+              data: temps,
+              borderColor: "rgb(34, 197, 94)",
+              backgroundColor: "rgba(34, 197, 94, 0.1)",
+              borderWidth: 2,
+              tension: 0.3
+            },
+            {
+              label: "Moisture (%)",
+              data: moistures,
+              borderColor: "rgb(59, 130, 246)",
+              backgroundColor: "rgba(59, 130, 246, 0.1)",
+              borderWidth: 2,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: "#1f2937"
+              }
+            }
+          }
+        }
+      });
+    }
+
+    updateDashboard(); // Load on start
+    setInterval(updateDashboard, 30000); // Auto-refresh every 30s
+  </script>
+</body>
+</html>
