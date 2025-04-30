@@ -58,8 +58,8 @@
         const rows = text.trim().split("\n").map(r => r.split(","));
         const headers = rows[0].map(h => h.trim().toLowerCase());
         const tsIndex = headers.indexOf("timestamp");
-        const tempIndex = headers.indexOf("moisture");
-        const moistureIndex = headers.indexOf("temperature");
+        const tempIndex = headers.indexOf("temperature");
+        const moistureIndex = headers.indexOf("moisture");
 
         return rows.slice(1).map(row => ({
           timestamp: row[tsIndex],
