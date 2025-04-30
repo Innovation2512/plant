@@ -18,6 +18,27 @@
     <button onclick="toggleDarkMode()" class="mt-2 sm:mt-0 px-3 py-1 bg-gray-800 text-white rounded">🌓 Toggle Dark Mode</button>
   </div>
 
+  <!-- Plant Selector -->
+  <div class="mt-4 mb-6">
+    <label for="plant-select" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Choose a Plant:</label>
+    <select id="plant-select" onchange="onPlantSelect()" class="w-full sm:w-80 p-2 border rounded bg-white dark:bg-gray-700 dark:text-white">
+      <option value="">-- Select Plant --</option>
+      <option value="monstera">Monstera</option>
+      <option value="basil">Basil</option>
+      <option value="aloe vera">Aloe Vera</option>
+      <option value="snake plant">Snake Plant</option>
+      <option value="peace lily">Peace Lily</option>
+    </select>
+  </div>
+
+  <!-- Plant Info -->
+  <div id="plant-info" class="card bg-white p-4 rounded-xl shadow-md dark:bg-gray-800 mt-4 hidden">
+    <h2 id="plant-name" class="text-lg font-semibold mb-2">Plant Name</h2>
+    <img id="plant-img" class="w-32 h-32 rounded border mb-2" />
+    <p id="plant-care" class="text-sm text-gray-600 dark:text-gray-300">Loading...</p>
+  </div>
+
+  <!-- Plant Image + Location -->
   <div class="mb-6 flex flex-col sm:flex-row items-center gap-4">
     <img src="http://mrsanghvi.ca/wp-content/uploads/2025/04/267z_large_1.jpg" class="w-20 h-20 rounded-xl border" alt="Plant Image">
     <div class="text-center sm:text-left">
@@ -26,8 +47,10 @@
     </div>
   </div>
 
+  <!-- Refresh Button -->
   <button onclick="updateDashboard()" class="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition text-sm sm:text-base">🔄 Refresh Now</button>
 
+  <!-- Sensor Data Cards -->
   <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4 mb-6">
     <div class="card bg-white p-4 rounded-xl shadow-md dark:bg-gray-800">
       <h2 class="text-lg font-semibold">💧 Moisture</h2>
@@ -40,15 +63,18 @@
     </div>
   </div>
 
+  <!-- Chart -->
   <div class="w-full overflow-x-auto">
     <canvas id="sensorChart" class="bg-white p-4 rounded-xl shadow-md dark:bg-gray-800 w-full max-w-full h-64 sm:h-80 md:h-96"></canvas>
   </div>
 
+  <!-- Suggestion Card -->
   <div class="mt-6 card bg-white p-4 rounded-xl shadow-md dark:bg-gray-800">
     <h2 class="text-lg font-semibold">🧠 Recommendation</h2>
     <p id="suggestion" class="mt-2 text-green-700 dark:text-green-300">--</p>
   </div>
 
+  <!-- Scripts -->
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSThY1jP-kMqE9CHoTYRrtVwh84J2QCE22fXStJuycb4MvwlsWEDc3sqcI8auw40zkuaOEc7BSaboCr/pub?output=csv";
 
@@ -146,6 +172,31 @@
           }
         }
       });
+    }
+
+    async function onPlantSelect() {
+      const plantName = document.getElementById("plant-select").value;
+      if (!plantName) return;
+
+      const apiKey = "sk-oPKC6812a72915cfc10150";
+      const url = `https://perenual.com/api/species-list?key=${apiKey}&q=${plantName}`;
+
+      try {
+        const response = await fetch(url);
+        const result = await response.json();
+        const plant = result.data[0];
+
+        if (plant) {
+          document.getElementById("plant-name").textContent = plant.common_name || plant.scientific_name;
+          document.getElementById("plant-img").src = plant.default_image?.original_url || "https://via.placeholder.com/150";
+          document.getElementById("plant-care").textContent = `🌱 ${plant.cycle} | 💧 Watering: ${plant.watering} | ☀️ Sunlight: ${plant.sunlight?.join(", ")}`;
+          document.getElementById("plant-info").classList.remove("hidden");
+        } else {
+          alert("No info found for this plant.");
+        }
+      } catch (e) {
+        console.error("Perenual API error:", e);
+      }
     }
 
     updateDashboard();
