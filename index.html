@@ -1,3 +1,8 @@
+from pathlib import Path
+from zipfile import ZipFile
+
+# Final fixed HTML with public CSV link and fully functional JS inside <script> tag
+html_code = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,7 +25,7 @@
 
   <!-- Plant Card -->
   <div class="mb-6 flex items-center gap-4">
-    <img src="http://mrsanghvi.ca/wp-content/uploads/2025/04/267z_large_1.jpg" class="w-20 h-20 rounded-xl border" alt="Plant Image">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Potted_plant_icon.svg/512px-Potted_plant_icon.svg.png" class="w-20 h-20 rounded-xl border" alt="Plant Image">
     <div>
       <h2 class="text-xl font-semibold">Pepper Plant 🌶️</h2>
       <p class="text-sm text-gray-500">Location: Kitchen Window</p>
@@ -52,10 +57,8 @@
     <p id="suggestion" class="mt-2 text-green-700 dark:text-green-300">--</p>
   </div>
 
- <script>
-  const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSThY1jP-kMqE9CHoTYRrtVwh84J2QCE22fXStJuycb4MvwlsWEDc3sqcI8auw40zkuaOEc7BSaboCr/pub?gid=0&single=true&output=csv";
-
-
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSThY1jP-kMqE9CHoTYRrtVwh84J2QCE22fXStJuycb4MvwlsWEDc3sqcI8auw40zkuaOEc7BSaboCr/pub?gid=0&single=true&output=csv";
 
     async function fetchCSV(url) {
       try {
@@ -158,3 +161,15 @@
   </script>
 </body>
 </html>
+"""
+
+# Save to file
+html_path = Path("/mnt/data/index.html")
+html_path.write_text(html_code)
+
+# Zip it
+zip_path = Path("/mnt/data/smart-plant-dashboard-final.zip")
+with ZipFile(zip_path, "w") as zipf:
+    zipf.write(html_path, arcname="index.html")
+
+zip_path.name
